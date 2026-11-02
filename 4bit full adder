@@ -1,0 +1,33 @@
+//design code
+module full_adder_4bit(
+    input [3:0] a,
+    input [3:0] b,
+    input cin,
+    output [3:0] sum,
+    output cout
+);
+
+assign {cout, sum} = a + b + cin;
+
+endmodule
+//testbench code
+module full_adder_tb;
+
+reg [3:0] a,b;
+reg cin;
+wire [3:0] sum;
+wire cout;
+
+full_adder_4bit dut(a,b,cin,sum,cout);
+
+initial begin
+    a=4'b1010; b=4'b0101; cin=1'b1;
+    #10;
+
+    $display("A=%b B=%b Cin=%b Sum=%b Cout=%b",
+              a,b,cin,sum,cout);
+
+    #10 $finish;
+end
+
+endmodule
