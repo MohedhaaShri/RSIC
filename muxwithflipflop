@@ -1,0 +1,66 @@
+//Design code
+
+module mux_clk(
+    input [3:0] I,
+    input [1:0] sel,
+    input clk,
+    output reg Y
+);
+
+always @(posedge clk)
+begin
+    case(sel)
+        2'b00: Y <= I[0];
+        2'b01: Y <= I[1];
+        2'b10: Y <= I[2];
+        2'b11: Y <= I[3];
+    endcase
+end
+
+endmodule
+
+//Testbench code
+module tb_mux_clk;
+
+reg [3:0] I;
+reg [1:0] sel;
+reg clk;
+
+wire Y;
+
+mux_clk uut(
+    .I(I),
+    .sel(sel),
+    .clk(clk),
+    .Y(Y)
+);
+
+// Clock generation
+initial
+begin
+    clk = 0;
+    forever #5 clk = ~clk;
+end
+
+// Test inputs
+initial
+begin
+    $monitor("Time=%0t | clk=%b | I=%b | sel=%b | Y=%b",
+              $time, clk, I, sel, Y);
+
+    I = 4'b1010;
+    sel = 2'b00;
+
+    #10 sel = 2'b01;
+    #10 sel = 2'b10;
+    #10 sel = 2'b11;
+
+    #10 I = 4'b1100;
+        sel = 2'b00;
+
+    #10 sel = 2'b01;
+
+    #10 $finish;
+end
+
+endmodule
