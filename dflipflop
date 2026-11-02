@@ -1,44 +1,60 @@
-module tb_fulladder_dff;
+//Design Code
+module d_ff(
+    input clk,
+    input rst,
+    input d,
+    output reg q
+);
 
-reg [3:0] A, B;
-reg Cin, clk;
+always @(posedge clk or posedge rst)
+begin
+    if (rst)
+        q <= 1'b0;
+    else
+        q <= d;
+end
 
-wire [3:0] Q;
-wire Cout;
+endmodule
+// Testbench code
+module d_ff_tb;
 
-fulladder_dff uut(
-    .A(A),
-    .B(B),
-    .Cin(Cin),
+reg clk;
+reg rst;
+reg d;
+wire q;
+
+d_ff uut(
     .clk(clk),
-    .Q(Q),
-    .Cout(Cout)
+    .rst(rst),
+    .d(d),
+    .q(q)
 );
 
 // Clock generation
-initial
-begin
+initial begin
     clk = 0;
     forever #5 clk = ~clk;
 end
 
-// Test inputs
-initial
-begin
-    $monitor("Time=%0t | A=%d | B=%d | Cin=%b | Cout=%b | Q=%d",
-              $time, A, B, Cin, Cout, Q);
+// Test stimulus
+initial begin
+    rst = 1;
+    d = 0;
 
-    A = 4'd3; B = 4'd2; Cin = 0;
+    #10 rst = 0;
 
-    #10 A = 4'd5; B = 4'd4; Cin = 1;
+    #10 d = 1;
+    #10 d = 0;
+    #10 d = 1;
+    #10 d = 1;
+    #10 d = 0;
 
-    #10 A = 4'd7; B = 4'd6; Cin = 0;
+    #20 $finish;
+end
 
-    #10 A = 4'd9; B = 4'd3; Cin = 1;
-
-    #10 A = 4'd2; B = 4'd1; Cin = 0;
-
-    #10 $finish;
+initial begin
+    $monitor("Time=%0t clk=%b rst=%b d=%b q=%b",
+              $time, clk, rst, d, q);
 end
 
 endmodule
