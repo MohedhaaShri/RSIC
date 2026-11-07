@@ -81,6 +81,7 @@ always @(*) begin
     negative = Result[WIDTH-1];
 
 end
+endmodule
 // Testbench code
 
 module alu_tb;
