@@ -28,6 +28,7 @@ begin
     else
         count <= count;
 end
+endmodule
 //Testbench code
 
 module counter_tb;
