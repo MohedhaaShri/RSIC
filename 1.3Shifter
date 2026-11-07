@@ -1,0 +1,165 @@
+//Design code
+
+module shifter (
+    input  [31:0] data_in,
+    input  [4:0]  shift_amt,
+    input  [1:0]  shift_type,
+    output reg [31:0] data_out
+);
+
+always @(*) begin
+
+    case (shift_type)
+
+        // Logical Left Shift
+        2'b00:
+            data_out = data_in << shift_amt;
+
+        // Logical Right Shift
+        2'b01:
+            data_out = data_in >> shift_amt;
+
+        // Arithmetic Right Shift
+        2'b10:
+            data_out = $signed(data_in) >>> shift_amt;
+
+        default:
+            data_out = 32'b0;
+
+    endcase
+
+end
+//Testbenchcode
+
+module shifter_tb;
+
+reg [31:0] data_in;
+reg [4:0] shift_amt;
+reg [1:0] shift_type;
+
+wire [31:0] data_out;
+
+reg [31:0] expected;
+integer i;
+integer errors;
+
+shifter uut (
+    .data_in(data_in),
+    .shift_amt(shift_amt),
+    .shift_type(shift_type),
+    .data_out(data_out)
+);
+
+// Reference model
+task check_shift;
+input [31:0] din;
+input [4:0] amount;
+input [1:0] operation;
+
+begin
+    data_in = din;
+    shift_amt = amount;
+    shift_type = operation;
+
+    case(operation)
+
+        2'b00:
+            expected = din << amount;
+
+        2'b01:
+            expected = din >> amount;
+
+        2'b10:
+            expected = $signed(din) >>> amount;
+
+        default:
+            expected = 32'b0;
+
+    endcase
+
+    #10;
+
+    if (data_out !== expected) begin
+        $display("FAIL: Type=%b Amount=%d Input=%h Expected=%h Got=%h",
+                 operation, amount, din, expected, data_out);
+        errors = errors + 1;
+    end
+    else begin
+        $display("PASS: Type=%b Amount=%d Input=%h Output=%h",
+                 operation, amount, din, data_out);
+    end
+end
+endtask
+
+initial begin
+
+    $dumpfile("shifter.vcd");
+    $dumpvars(0, shifter_tb);
+
+    errors = 0;
+
+    $display("========== BARREL SHIFTER TEST START ==========");
+
+    // Test all shift amounts for all three operations
+
+    for (i = 0; i < 32; i = i + 1) begin
+
+        // Logical Left Shift
+        check_shift(32'h12345678, i, 2'b00);
+
+        // Logical Right Shift
+        check_shift(32'h12345678, i, 2'b01);
+
+        // Arithmetic Right Shift (positive number)
+        check_shift(32'h72345678, i, 2'b10);
+
+    end
+
+    // Negative number tests for arithmetic shift
+    for (i = 0; i < 32; i = i + 1) begin
+        check_shift(32'h92345678, i, 2'b10);
+    end
+
+    // Corner cases
+
+    // Zero input
+    check_shift(32'h00000000, 0, 2'b00);
+    check_shift(32'h00000000, 15, 2'b01);
+    check_shift(32'h00000000, 31, 2'b10);
+
+    // Maximum positive value
+    check_shift(32'h7FFFFFFF, 31, 2'b10);
+
+    // Maximum negative value
+    check_shift(32'h80000000, 31, 2'b10);
+
+    // All ones
+    check_shift(32'hFFFFFFFF, 1, 2'b00);
+    check_shift(32'hFFFFFFFF, 1, 2'b01);
+    check_shift(32'hFFFFFFFF, 1, 2'b10);
+
+    // Random tests
+    for (i = 0; i < 20; i = i + 1) begin
+        check_shift($random, $random, i % 3);
+    end
+
+    // Invalid operation
+    check_shift(32'h12345678, 5, 2'b11);
+
+    $display("==============================================");
+    $display("Total errors = %d", errors);
+
+    if (errors == 0)
+        $display("ALL TESTS PASSED");
+    else
+        $display("TEST FAILED");
+
+    $display("========== BARREL SHIFTER TEST END ==========");
+
+    $finish;
+
+end
+
+endmodule
+
+endmodule
