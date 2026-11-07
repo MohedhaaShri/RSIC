@@ -1,0 +1,146 @@
+//Design code
+module counter (
+    input clk,
+    input reset,
+    input enable,
+    input up_down,
+    input load,
+    input [7:0] data_in,
+    output reg [7:0] count
+);
+
+always @(posedge clk)
+begin
+    if (reset)
+        count <= 8'b00000000;
+
+    else if (load)
+        count <= data_in;
+
+    else if (enable)
+    begin
+        if (up_down)
+            count <= count + 1'b1;
+        else
+            count <= count - 1'b1;
+    end
+
+    else
+        count <= count;
+end
+//Testbench code
+
+module counter_tb;
+
+reg clk;
+reg reset;
+reg enable;
+reg up_down;
+reg load;
+reg [7:0] data_in;
+
+wire [7:0] count;
+
+counter uut (
+    .clk(clk),
+    .reset(reset),
+    .enable(enable),
+    .up_down(up_down),
+    .load(load),
+    .data_in(data_in),
+    .count(count)
+);
+
+// Clock generation
+always #5 clk = ~clk;
+
+initial begin
+
+    $dumpfile("counter.vcd");
+    $dumpvars(0, counter_tb);
+
+    // Initial values
+    clk = 0;
+    reset = 0;
+    enable = 0;
+    up_down = 1;
+    load = 0;
+    data_in = 0;
+
+    // 1. Synchronous reset
+    #10;
+    reset = 1;
+    #10;
+    reset = 0;
+
+    // 2. Count UP
+    enable = 1;
+    up_down = 1;
+    #50;
+
+    // 3. Count DOWN
+    up_down = 0;
+    #50;
+
+    // 4. Parallel LOAD
+    enable = 0;
+    load = 1;
+    data_in = 8'd100;
+    #10;
+    load = 0;
+
+    // 5. Count UP from loaded value
+    enable = 1;
+    up_down = 1;
+    #40;
+
+    // 6. Disable counter (HOLD)
+    enable = 0;
+    #30;
+
+    // 7. Load maximum value
+    load = 1;
+    data_in = 8'hFF;
+    #10;
+    load = 0;
+
+    // 8. Overflow test
+    enable = 1;
+    up_down = 1;
+    #10;
+
+    // 9. Load zero
+    enable = 0;
+    load = 1;
+    data_in = 8'h00;
+    #10;
+    load = 0;
+
+    // 10. Underflow test
+    enable = 1;
+    up_down = 0;
+    #10;
+
+    // 11. Reset during counting
+    reset = 1;
+    #10;
+    reset = 0;
+
+    enable = 0;
+    #20;
+
+    $display("Counter simulation completed");
+    $finish;
+
+end
+
+initial begin
+    $monitor("Time=%0t Reset=%b Enable=%b UpDown=%b Load=%b Data=%d Count=%d",
+             $time, reset, enable, up_down, load, data_in, count);
+end
+
+endmodule
+
+
+
+endmodule
