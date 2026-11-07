@@ -54,6 +54,3 @@ module vending_tb;
         $finish;
     end
 endmodule
-
-
-endmodule
